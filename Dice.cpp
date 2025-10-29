@@ -3,24 +3,46 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include <iomanip>
 using namespace std;
 
 //mt19937 rnd(static_cast<unsigned int> (time(nullptr)));
 mt19937 rnd(1);
+
 struct Term {
 	int count, max, add;//count d max + add
 };
+
+void print(Term term);
+
+bool isDigit(char c) {
+	return '0' <= c && c <= '9';
+}
+
+Term getTermFromString(const string& str);
+
+int getNumberFromTerm(const Term& term);
+
+
+void printFunc(vector<int>& vec, int scaleDivision, int add);
+
+int input(const string& str);
+
+void play();
+
+
+int main() { 
+	while (true) play();
+	return 0;
+}
 
 void print(Term term) {
 	cout << term.count << '\n';
 	cout << term.max << '\n';
 	cout << term.add << '\n';
 }
-bool isDigit(char c) {
-	return '0' <= c && c <= '9';
-}
 
-Term parse(const string& str) {
+Term getTermFromString(const string& str) {
 	Term term;
 	int number = 0;
 	bool isAnyAdd = false;
@@ -46,21 +68,15 @@ Term parse(const string& str) {
 
 }
 
-int getNumber(Term& term) {
+int getNumberFromTerm(const Term& term) {// excluding
 	int number = 0;
 	for (int i = 0; i < term.count; i++) {
 		number += rnd() % term.max + 1;
 	}
-	return number;
+	return number + term.add;
 }
-/*
-int dice(const string& str) {
-	Term term = parse(str);
-	return getNumber(term);
 
-}*/
-
-void printFunc(vector<int>& vec, int scaleDivision, int add) {
+void printFunc(vector<int>& vec, int scaleDivision, int add, int setwidth) {
 	int sum = 0, mx = 0, mn = 1e9, sz = size(vec);
 	for (int i = 0; i < sz; i++) {
 		if (vec[i] == 0) continue;
@@ -68,67 +84,56 @@ void printFunc(vector<int>& vec, int scaleDivision, int add) {
 		mx = max(mx, vec[i]);
 		mn = min(mn, vec[i]);
 	}
-	//vector<vector<char>> grid(sz, vector<char>(mx / scaleDivision));
 
 	cout << "MaxValue is: " << mx + add << '\n';
-	cout << "MinValue is: " << mn + add << '\n';
+	cout << "MinValue(except 0) is: " << mn + add << '\n';
 	cout << "Scale Division is: " << scaleDivision << '\n';
 	cout << '\n';
-	for (int j = mx + scaleDivision; j >= mn - scaleDivision ; j-=scaleDivision) {
+	for (int j = mx + 1; j >= mn; j -= scaleDivision) {
+		cout << setw(setwidth) << j;
 		for (int i = 0; i < sz; i++) {
-			if (vec[i] < j) cout << '*'; else cout << '@';
-			
+			cout << setw(setwidth);
+			if (vec[i] < j) cout << ' '; else cout << '*';
 		}
 		cout << '\n';
 	}
-
+	cout << setw(setwidth) << ' ';
+	for (int i = 0; i < sz; i++) cout << setw(setwidth) << i + add;
+	cout << '\n';
 
 }
 
-void input() {
+int input(const string& str) {
+	cout << str;
+	int val;
+	cin >> val;
+	return val;
+}
+
+void play() {
 	cout << "Input Dice:\n";
 	string str;
 	getline(cin, str);
 
-	Term term = parse(str);
-	vector<int> vec(term.count * (term.max + 1), 0);
+	Term term = getTermFromString(str);
+	vector<int> vec(term.max * term.count + 1, 0);
 
-	cout << "Input n:\n";
-	int n;
-	cin >> n;
-
-	cout << "Input scale division:\n";
-	int scaleDiv;
-	cin >> scaleDiv;
+	int n = input("Input n:\n");
+	int scaleDiv = input("Input scale division:\n");
 
 	for (int i = 0; i < n; i++) {
-		++vec[getNumber(term)];
+		++vec[getNumberFromTerm(term) - term.add];
 	}
-	printFunc(vec, scaleDiv, term.add);
-	cout << "Print values(y/n)?\n";
-	char c;
-	cin >> c;
-	if (c == 'y') {
+
+	printFunc(vec, scaleDiv, term.add, 3);
+	int c = input("Print values (press 1)?\nNext dice(press 2)?\n");
+	cout << c;
+	if (c == 1) {
 		cout << "Values:\n";
-		for (int i = 1; i < size(vec); i++) if(vec[i]) cout << i << '|' << vec[i] + term.add << '\n';
+		for (int i = 0; i < size(vec); i++) cout << std::setw(2) << i + term.add << '|' << vec[i]  << '\n';
 	}
 	getchar();
 	cout << '\n';
-}
-
-int main() { 
-	while (1) input();
-	
-	/*
-	vector<int> vec(21, 0);
-	for (int i = 0; i < 1000000; i++) {
-		++vec[dice("1d20")];
-	}
-	printFunc(vec, 100);
-	cout << "Values:\n";
-	for (auto& x : vec) cout << x << '\n';
-	*/
-	return 0;
 }
 
 template<typename... Args>
