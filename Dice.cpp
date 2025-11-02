@@ -13,20 +13,20 @@ struct Term {
 	int count, max, add;//count d max + add
 };
 
-void print(Term term);
+void print(const Term&);
 
 bool isDigit(char c) {
 	return '0' <= c && c <= '9';
 }
 
-Term getTermFromString(const string& str);
+Term getTermFromString(const string&);
 
-int getNumberFromTerm(const Term& term);
+int getNumberFromTerm(const Term&);
 
-
+string getStringFromTerm(const Term&);
 void printFunc(vector<int>& vec, int scaleDivision, int add);
 
-int input(const string& str);
+int input(const string&);
 
 void play();
 
@@ -68,7 +68,7 @@ Term getTermFromString(const string& str) {
 
 }
 
-int getNumberFromTerm(const Term& term) {// excluding
+int getNumberFromTerm(const Term& term) {
 	int number = 0;
 	for (int i = 0; i < term.count; i++) {
 		number += rnd() % term.max + 1;
@@ -76,7 +76,21 @@ int getNumberFromTerm(const Term& term) {// excluding
 	return number + term.add;
 }
 
-void printFunc(vector<int>& vec, int scaleDivision, int add, int setwidth) {
+string getStringFromTerm(const Term& term) {
+	string res = "";
+	if (term.count != 1) res += to_string(term.count);
+	res += 'd';
+	res += to_string(term.max);
+	if (term.add) {
+		if (term.add > 0) res += '+';
+		res += to_string(term.add);
+	}
+	return res;
+}
+
+
+void printFunc(vector<int>& vec, int scaleDivision, int add) {
+	int setwidth = 3;
 	int sum = 0, mx = 0, mn = 1e9, sz = size(vec);
 	for (int i = 0; i < sz; i++) {
 		if (vec[i] == 0) continue;
@@ -88,18 +102,20 @@ void printFunc(vector<int>& vec, int scaleDivision, int add, int setwidth) {
 	cout << "MaxValue is: " << mx + add << '\n';
 	cout << "MinValue(except 0) is: " << mn + add << '\n';
 	cout << "Scale Division is: " << scaleDivision << '\n';
-	cout << '\n';
-	for (int j = mx + 1; j >= mn; j -= scaleDivision) {
+	cout << "\nFrequency\n";
+	for (int j = mx + 1; j >= mn - scaleDivision; j -= scaleDivision) {
+		j = max(j, 0);
 		cout << setw(setwidth) << j;
 		for (int i = 0; i < sz; i++) {
 			cout << setw(setwidth);
 			if (vec[i] < j) cout << ' '; else cout << '*';
 		}
-		cout << '\n';
+		cout << "\n";
 	}
+	
 	cout << setw(setwidth) << ' ';
 	for (int i = 0; i < sz; i++) cout << setw(setwidth) << i + add;
-	cout << '\n';
+	cout << " Rolled number\n\n";
 
 }
 
@@ -110,22 +126,25 @@ int input(const string& str) {
 	return val;
 }
 
+
+
 void play() {
 	cout << "Input Dice:\n";
 	string str;
 	getline(cin, str);
 
 	Term term = getTermFromString(str);
+	//cout << getStringFromTerm(term)<<"\n";
 	vector<int> vec(term.max * term.count + 1, 0);
 
-	int n = input("Input n:\n");
+	int n = input("Input number of dice rolls:\n");
 	int scaleDiv = input("Input scale division:\n");
 
 	for (int i = 0; i < n; i++) {
 		++vec[getNumberFromTerm(term) - term.add];
 	}
 
-	printFunc(vec, scaleDiv, term.add, 3);
+	printFunc(vec, scaleDiv, term.add);
 	int c = input("Print values (press 1)?\nNext dice(press 2)?\n");
 	cout << c;
 	if (c == 1) {
@@ -134,9 +153,4 @@ void play() {
 	}
 	getchar();
 	cout << '\n';
-}
-
-template<typename... Args>
-void print(Args&&... args) {
-	(std::cout << ... << std::forward<Args>(args)) << std::endl;
 }
